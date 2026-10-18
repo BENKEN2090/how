@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chuẩn độ Acid – Base</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0b0d14;
+      color: #e8eaf0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 28px 24px;
+    }
+
+    /* ── Layout ─────────────────────────────────────── */
+    .page-title {
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .page-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Glass card ─────────────────────────────────── */
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 18px;
+      padding: 22px 20px;
+    }
+
+    .label-xs {
+      font-size: 10px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Mode pill ───────────────────────────────────── */
+    .mode-pill { display:inline-flex; border-radius:999px; border:1px solid rgba(255,255,255,0.14); overflow:hidden; }
+    .mode-pill button { padding:5px 16px; font-size:12px; border:none; cursor:pointer; transition: background 0.2s, color 0.2s; }
+    .mode-pill .active   { background:rgba(255,255,255,0.18); color:#fff; font-weight:600; }
+    .mode-pill .inactive { background:transparent; color:rgba(255,255,255,0.4); }
+
+    /* ── Burette ─────────────────────────────────────── */
+    .burette-body {
+      width: 26px;
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 3px 3px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .burette-liquid {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      transition: height 0.2s ease, background 0.4s;
+    }
+    .burette-tip {
+      width: 5px; height: 16px;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-top: none;
+      border-radius: 0 0 3px 3px;
+      margin: 0 auto;
+    }
+
+    /* ── Ripple ──────────────────────────────────────── */
+    @keyframes ripple {
+      0%   { transform: translateX(-50%) scale(0.3); opacity: 0.7; }
+      100% { transform: translateX(-50%) scale(2.8); opacity: 0; }
+    }
+    .ripple-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      width: 34px; height: 10px;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      animation: ripple 0.65s ease-out forwards;
+      pointer-events: none;
+    }
+
+    /* ── Stir ────────────────────────────────────────── */
+    @keyframes stir { to { transform: rotate(360deg); } }
+    .stirring { animation: stir 0.75s linear infinite; }
+
+    /* ── Equivalence glow ────────────────────────────── */
+    @keyframes glowPulse {
+      0%,100% { filter: drop-shadow(0 0 0 rgba(167,139,250,0)); }
+      50%      { filter: drop-shadow(0 0 18px rgba(167,139,250,0.9)); }
+    }
+    .eq-glow { animation: glowPulse 1.1s ease-in-out 4; }
+
+    /* ── pH bar ──────────────────────────────────────── */
+    .ph-gradient {
+      background: linear-gradient(to right,
+        #e53e3e 0%, #ed8936 20%, #ecc94b 35%,
+        #48bb78 50%, #4299e1 65%, #667eea 78%, #805ad5 100%
+      );
+      border-radius: 999px;
+    }
+
+    /* ── Slider ──────────────────────────────────────── */
+    .vol-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 999px; outline: none; cursor: pointer;
+      background: linear-gradient(to right,
+        var(--fill-color, #60a5fa) 0%,
+        var(--fill-color, #60a5fa) var(--fill-pct, 0%),
+        rgba(255,255,255,0.1) var(--fill-pct, 0%),
+        rgba(255,255,255,0.1) 100%
+      );
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px; border-radius: 50%; background: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.4);
+      cursor: grab; transition: transform 0.1s, box-shadow 0.15s;
+    }
+    .vol-slider::-webkit-slider-thumb:active {
+      cursor: grabbing; transform: scale(1.18);
+      box-shadow: 0 0 0 5px rgba(255,255,255,0.22), 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .vol-slider::-moz-range-thumb {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; border: none;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.15); cursor: grab;
+    }
+
+    /* ── Fine input ──────────────────────────────────── */
+    .fine-input {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: #fff;
+      font-size: 14px; font-weight: 600; text-align: center;
+      width: 68px; padding: 4px 6px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .fine-input:focus { border-color: rgba(255,255,255,0.4); }
+    .fine-input::-webkit-inner-spin-button,
+    .fine-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .btn-xs {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+      border-radius: 7px; padding: 4px 12px;
+      font-size: 13px; cursor: pointer;
+      transition: background 0.15s, transform 0.1s; user-select: none;
+    }
+    .btn-xs:hover  { background: rgba(255,255,255,0.15); }
+    .btn-xs:active { transform: scale(0.95); }
+
+    /* ── Drop flow ───────────────────────────────────── */
+    @keyframes flowDrop {
+      0%   { opacity:1; transform: translateY(0); }
+      100% { opacity:0; transform: translateY(52px); }
+    }
+    .flow-drop {
+      position: absolute;
+      width: 4px; height: 7px;
+      border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+      left: 50%; transform: translateX(-50%);
+      top: 0;
+      animation: flowDrop 0.42s ease-in infinite;
+      pointer-events: none;
+    }
+
+    /* ── Instruction panel ───────────────────────────── */
+    .instr-section { margin-bottom: 18px; }
+    .instr-section:last-child { margin-bottom: 0; }
+    .instr-title {
+      font-size: 11px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.35);
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .instr-title::after {
+      content:''; flex:1; height:1px; background:rgba(255,255,255,0.07);
+    }
+
+    .step-row {
+      display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start;
+    }
+    .step-num {
+      min-width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5);
+      flex-shrink: 0;
+    }
+    .step-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.55; }
+    .step-text strong { color: rgba(255,255,255,0.85); }
+
+    /* color swatches */
+    .swatch-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+    }
+    .swatch {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    .swatch-label { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.4; }
+    .swatch-label span { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+    /* key terms */
+    .term-row { margin-bottom: 6px; }
+    .term { font-size: 12px; }
+    .term dt { color: rgba(255,255,255,0.75); font-weight: 600; display:inline; }
+    .term dd { color: rgba(255,255,255,0.48); display:inline; font-size:11px; }
+
+    /* Equation pill */
+    .eq-pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 7px 12px;
+      font-size: 12px; color: rgba(255,255,255,0.65);
+      letter-spacing: 0.03em; text-align: center;
+      margin-bottom: 8px;
+    }
+    sub { font-size: 9px; }
+
+    /* status pill */
+    #statusBox {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      transition: color 0.3s, border-color 0.3s;
+      min-height: 38px;
+      display: flex; align-items: center; justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div style="max-width:980px; margin:0 auto;">
+
+    <!-- Page header -->
+    <div class="page-title">
+      Mô phỏng hoá học · Phương pháp chuẩn độ Acid – Base
+    </div>
+
+    <div class="two-col">
+
+      <!-- ══════════════ LEFT: Simulation ══════════════ -->
+      <div class="card">
+
+        <!-- Mode -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+          <div>
+            <div style="font-size:16px; font-weight:600; color:#fff; margin-bottom:2px;">Thí nghiệm</div>
+            <div class="label-xs">Chỉ thị Phenolphthalein (PP)</div>
+          </div>
+          <div class="mode-pill">
+            <button class="active"   id="modeNaOH" onclick="setMode('NaOH_HCl')">NaOH → HCl</button>
+            <button class="inactive" id="modeHCl"  onclick="setMode('HCl_NaOH')">HCl → NaOH</button>
+          </div>
+        </div>
+
+        <!-- Apparatus row -->
+        <div style="display:flex; gap:16px; align-items:flex-end; margin-bottom:18px;">
+
+          <!-- Burette -->
+          <div style="display:flex; flex-direction:column; align-items:center; gap:3px; min-width:60px;">
+            <div class="label-xs" id="buretteLabel" style="margin-bottom:3px;">NaOH</div>
+            <div style="position:relative; height:130px; width:26px;">
+              <div class="burette-body" style="height:130px; width:26px;">
+                <div class="burette-liquid" id="buretteLiquid" style="height:100%;"></div>
+              </div>
+              <div style="position:absolute; right:-22px; top:0; height:100%; display:flex; flex-direction:column; justify-content:space-between; pointer-events:none;">
+                <span style="font-size:9px; color:rgba(255,255,255,0.3);">0</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.3);">25</span>
+                <span style="font-size:9px; color:rgba(255,255,255,0.3);">50</span>
+              </div>
+            </div>
+            <div class="burette-tip"></div>
+            <div id="dropZone" style="position:relative; height:54px; width:26px;"></div>
+          </div>
+
+          <!-- Flask -->
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+            <div id="flaskWrap" style="position:relative; width:120px; height:120px; margin:0 auto;">
+              <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                <rect x="49" y="8" width="22" height="34" rx="3"
+                      fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.24)" stroke-width="1.5"/>
+                <clipPath id="bodyClip">
+                  <path d="M43 42 L20 96 Q15 108 25 112 L95 112 Q105 108 100 96 L77 42 Z"/>
+                </clipPath>
+                <rect x="8" y="32" width="104" height="90" clip-path="url(#bodyClip)"
+                      id="flaskFill" fill="rgba(255,255,255,0.04)" style="transition:fill 0.5s;"/>
+                <path d="M43 42 L20 96 Q15 108 25 112 L95 112 Q105 108 100 96 L77 42 Z"
+                      stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+                <ellipse cx="60" cy="74" rx="30" ry="4" fill="rgba(255,255,255,0.07)"/>
+                <circle id="stirCircle" cx="60" cy="95" r="9"
+                        stroke="rgba(255,255,255,0.14)" stroke-width="1.5"
+                        stroke-dasharray="4 3" fill="none"/>
+              </svg>
+            </div>
+            <div class="label-xs" style="margin-top:-2px;">Flask 25 mL · 0.1 M</div>
+          </div>
+
+          <!-- Stats -->
+          <div style="display:flex; flex-direction:column; gap:8px; min-width:95px;">
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:9px 10px; text-align:center;">
+              <div class="label-xs" style="margin-bottom:2px;">pH</div>
+              <div id="phValue" style="font-size:28px; font-weight:700; color:#fff; line-height:1; transition:color 0.4s;">7.00</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:9px 10px; text-align:center;">
+              <div class="label-xs" style="margin-bottom:2px;">Đã thêm</div>
+              <div id="volAdded" style="font-size:15px; font-weight:600; color:#93c5fd; line-height:1.3;">0.00 mL</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:9px 10px; text-align:center;">
+              <div class="label-xs" style="margin-bottom:5px;">Màu PP</div>
+              <div id="colorDot" style="width:22px; height:22px; border-radius:50%; background:transparent; border:1.5px solid rgba(255,255,255,0.25); margin:0 auto; transition:background 0.55s, border-color 0.55s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- pH bar -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span class="label-xs">Acid (pH 0)</span>
+            <span class="label-xs">Trung tính (pH 7)</span>
+            <span class="label-xs">Base (pH 14)</span>
+          </div>
+          <div style="position:relative; height:10px;">
+            <div class="ph-gradient" style="height:100%;"></div>
+            <div id="phPointer" style="position:absolute; top:-3px; width:3px; height:16px; background:#fff; border-radius:999px; left:50%; transform:translateX(-50%); transition:left 0.2s; box-shadow:0 0 7px rgba(255,255,255,0.8);"></div>
+          </div>
+        </div>
+
+        <!-- Slider -->
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="label-xs">Thể tích titrant</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn-xs" onclick="nudge(-0.1)">−</button>
+              <input type="number" class="fine-input" id="fineInput" value="0.00" min="0" max="50" step="0.1" oninput="onFineInput(this.value)" />
+              <span style="font-size:11px; color:rgba(255,255,255,0.35);">mL</span>
+              <button class="btn-xs" onclick="nudge(+0.1)">+</button>
+            </div>
+          </div>
+          <input type="range" class="vol-slider" id="volSlider"
+                 min="0" max="50" step="0.1" value="0"
+                 oninput="onSlider(this.value)"
+                 onmousedown="startFlow()" ontouchstart="startFlow()"
+                 onmouseup="stopFlow()"   ontouchend="stopFlow()" />
+          <div style="display:flex; justify-content:space-between; margin-top:4px; padding:0 2px;">
+            <span style="font-size:10px; color:rgba(255,255,255,0.25);">0</span>
+            <span style="font-size:10px; color:rgba(255,255,255,0.25);">12.5</span>
+            <span style="font-size:10px; color:rgba(255,255,255,0.45); font-weight:600;">25 ✦</span>
+            <span style="font-size:10px; color:rgba(255,255,255,0.25);">37.5</span>
+            <span style="font-size:10px; color:rgba(255,255,255,0.25);">50</span>
+          </div>
+        </div>
+
+        <!-- Status + Reset -->
+        <div id="statusBox">Kéo thanh trượt để bắt đầu thí nghiệm.</div>
+
+        <div style="text-align:right; margin-top:10px;">
+          <button class="btn-xs" onclick="resetAll()" style="padding:5px 18px;">↺ Làm lại</button>
+        </div>
+
+      </div>
+
+      <!-- ══════════════ RIGHT: Instructions ══════════════ -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <!-- What is titration -->
+        <div class="card">
+          <div class="instr-section">
+            <div class="instr-title">Chuẩn độ là gì?</div>
+            <p style="font-size:12px; color:rgba(255,255,255,0.55); line-height:1.65;">
+              Chuẩn độ là phương pháp xác định <strong style="color:rgba(255,255,255,0.8);">nồng độ</strong> của một dung dịch bằng cách nhỏ từ từ dung dịch đã biết nồng độ (titrant) vào dung dịch cần xác định cho đến khi phản ứng trung hoà <strong style="color:rgba(255,255,255,0.8);">hoàn toàn</strong>.
+            </p>
+          </div>
+
+          <div class="instr-section">
+            <div class="instr-title">Phương trình phản ứng</div>
+            <div class="eq-pill">NaOH + HCl → NaCl + H<sub>2</sub>O</div>
+            <div class="eq-pill" id="eqMode2" style="display:none;">HCl + NaOH → NaCl + H<sub>2</sub>O</div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.38); line-height:1.5;">
+              Điểm tương đương xảy ra khi số mol acid = số mol base. Trong mô phỏng này: <strong style="color:rgba(255,255,255,0.55);">25 mL × 0.1 M = 25 mL × 0.1 M</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Controls guide -->
+        <div class="card">
+          <div class="instr-section">
+            <div class="instr-title">Hướng dẫn điều khiển</div>
+            <div class="step-row">
+              <div class="step-num">1</div>
+              <div class="step-text">Chọn <strong>chế độ</strong>: NaOH → HCl (base nhỏ vào acid) hoặc HCl → NaOH (acid nhỏ vào base).</div>
+            </div>
+            <div class="step-row">
+              <div class="step-num">2</div>
+              <div class="step-text"><strong>Kéo thanh trượt</strong> để nhỏ titrant vào bình. Quan sát màu sắc và pH thay đổi theo thời gian thực.</div>
+            </div>
+            <div class="step-row">
+              <div class="step-num">3</div>
+              <div class="step-text">Dùng nút <strong>− / +</strong> hoặc gõ trực tiếp vào ô số để tinh chỉnh chính xác đến <strong>0.1 mL</strong>.</div>
+            </div>
+            <div class="step-row">
+              <div class="step-num">4</div>
+              <div class="step-text">Tìm <strong>điểm tương đương</strong> tại 25.00 mL — bình sẽ phát sáng tím và pH = 7.00.</div>
+            </div>
+            <div class="step-row">
+              <div class="step-num">5</div>
+              <div class="step-text">Nhấn <strong>↺ Làm lại</strong> để thử lại từ đầu.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phenolphthalein guide -->
+        <div class="card">
+          <div class="instr-section">
+            <div class="instr-title">Chỉ thị Phenolphthalein (PP)</div>
+            <div class="swatch-row">
+              <div class="swatch" style="background:transparent;"></div>
+              <div class="swatch-label"><span>Không màu</span> — pH &lt; 8.2 (môi trường acid/trung tính)</div>
+            </div>
+            <div class="swatch-row">
+              <div class="swatch" style="background:rgba(228,95,210,0.65);"></div>
+              <div class="swatch-label"><span>Hồng nhạt</span> — pH 8.2 – 9.5 (vừa qua điểm tương đương)</div>
+            </div>
+            <div class="swatch-row">
+              <div class="swatch" style="background:rgba(175,40,210,0.85);"></div>
+              <div class="swatch-label"><span>Tím đậm</span> — pH &gt; 10 (dư base nhiều)</div>
+            </div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.35); margin-top:8px; line-height:1.5;">
+              Trong thực tế, khi dung dịch vừa chuyển sang <em>hồng nhạt bền sau 30 giây</em> là dấu hiệu đạt điểm cuối chuẩn độ.
+            </p>
+          </div>
+        </div>
+
+        <!-- Key terms -->
+        <div class="card">
+          <div class="instr-section">
+            <div class="instr-title">Thuật ngữ</div>
+            <dl>
+              <div class="term-row"><dt class="term">Titrant: </dt><dd class="term">Dung dịch đã biết nồng độ, chứa trong burette (ống chuẩn độ).</dd></div>
+              <div class="term-row" style="margin-top:5px;"><dt class="term">Analyte: </dt><dd class="term">Dung dịch cần xác định nồng độ, đặt trong bình tam giác.</dd></div>
+              <div class="term-row" style="margin-top:5px;"><dt class="term">Điểm tương đương: </dt><dd class="term">Thời điểm acid và base trung hoà hoàn toàn nhau.</dd></div>
+              <div class="term-row" style="margin-top:5px;"><dt class="term">Điểm cuối chuẩn độ: </dt><dd class="term">Thời điểm chỉ thị đổi màu (gần điểm tương đương).</dd></div>
+            </dl>
+          </div>
+        </div>
+
+      </div>
+      <!-- end right column -->
+
+    </div><!-- end two-col -->
+
+    <!-- Footer -->
+    <div style="text-align:center; margin-top:24px; font-size:11px; color:rgba(255,255,255,0.18); letter-spacing:0.05em;">
+      Mô phỏng giáo dục · Nồng độ: 0.1 M · Thể tích flask: 25 mL · Điểm tương đương: 25.00 mL
+    </div>
+
+  </div><!-- end max-width wrapper -->
+
+  <script>
+    const FLASK_VOL = 25, CONC = 0.1, EQ = 25.0, BUR_MAX = 50;
+    let mode = 'NaOH_HCl', mlAdded = 0, flowing = false, flowEl = null, stirTm = null, eqGlowed = false;
+
+    function calcPH(v) {
+      const molT = v * CONC / 1000, molF = FLASK_VOL * CONC / 1000, totV = (FLASK_VOL + v) / 1000;
+      if (mode === 'NaOH_HCl') {
+        if (v < EQ - 0.005) return Math.max(0, -Math.log10((molF - molT) / totV));
+        if (v < EQ + 0.005) return 7.0;
+        return Math.min(14, 14 - Math.max(0, -Math.log10((molT - molF) / totV)));
+      } else {
+        if (v < EQ - 0.005) return Math.min(14, 14 - Math.max(0, -Math.log10((molF - molT) / totV)));
+        if (v < EQ + 0.005) return 7.0;
+        return Math.max(0, -Math.log10((molT - molF) / totV));
+      }
+    }
+
+    function flaskColor(ph) {
+      if (ph < 8.2) return `rgba(255,255,255,${0.03 + ph * 0.003})`;
+      if (ph < 9.5) { const t=(ph-8.2)/1.3; return `rgba(220,80,200,${0.18+t*0.36})`; }
+      if (ph < 11)  { const t=(ph-9.5)/1.5; return `rgba(188,48,215,${0.54+t*0.22})`; }
+      return 'rgba(152,32,205,0.84)';
+    }
+    function ppDot(ph) {
+      if (ph < 8.2) return { bg:'transparent', bd:'rgba(255,255,255,0.25)' };
+      if (ph < 9.5) { const t=(ph-8.2)/1.3; return { bg:`rgba(228,95,210,${0.35+t*0.38})`, bd:'rgba(228,95,210,0.9)' }; }
+      if (ph < 11)  { const t=(ph-9.5)/1.5; return { bg:`rgba(192,52,215,${0.72+t*0.18})`, bd:'rgba(192,52,215,1)' }; }
+      return { bg:'rgba(152,32,205,0.92)', bd:'rgba(152,32,205,1)' };
+    }
+    function phColor(ph) {
+      if (ph < 5)   return '#fc8181';
+      if (ph < 6.5) return '#fbd38d';
+      if (ph > 9)   return '#b794f4';
+      if (ph > 7.5) return '#76e4f7';
+      return '#68d391';
+    }
+
+    function updateSlider(v) {
+      const s = document.getElementById('volSlider');
+      s.style.setProperty('--fill-color', mode === 'NaOH_HCl' ? '#60a5fa' : '#fc8181');
+      s.style.setProperty('--fill-pct', (v / BUR_MAX * 100).toFixed(1) + '%');
+    }
+
+    function startFlow() {
+      if (flowing) return; flowing = true;
+      const zone = document.getElementById('dropZone');
+      flowEl = document.createElement('div');
+      flowEl.className = 'flow-drop';
+      flowEl.style.background = mode === 'NaOH_HCl' ? 'rgba(96,165,250,0.9)' : 'rgba(252,129,129,0.9)';
+      zone.appendChild(flowEl);
+    }
+    function stopFlow() {
+      flowing = false;
+      if (flowEl) { flowEl.remove(); flowEl = null; }
+      spawnRipple();
+    }
+    function spawnRipple() {
+      const w = document.getElementById('flaskWrap');
+      const r = document.createElement('div'); r.className = 'ripple-ring';
+      w.appendChild(r); setTimeout(() => r.remove(), 680);
+    }
+    function doStir() {
+      const sc = document.getElementById('stirCircle');
+      sc.classList.add('stirring');
+      clearTimeout(stirTm);
+      stirTm = setTimeout(() => sc.classList.remove('stirring'), 1100);
+    }
+
+    function updateUI() {
+      const ph = calcPH(mlAdded), fmt = ph.toFixed(2);
+      document.getElementById('phValue').textContent = fmt;
+      document.getElementById('phValue').style.color = phColor(ph);
+      document.getElementById('phPointer').style.left = (ph / 14 * 100).toFixed(2) + '%';
+      document.getElementById('volAdded').textContent = mlAdded.toFixed(2) + ' mL';
+
+      const bPct = Math.max(0, 1 - mlAdded / BUR_MAX);
+      document.getElementById('buretteLiquid').style.height = (bPct * 100) + '%';
+      document.getElementById('buretteLiquid').style.background =
+        mode === 'NaOH_HCl' ? `rgba(96,165,250,${0.55-(1-bPct)*0.2})` : `rgba(252,129,129,${0.55-(1-bPct)*0.2})`;
+
+      document.getElementById('flaskFill').setAttribute('fill', flaskColor(ph));
+      const pp = ppDot(ph);
+      document.getElementById('colorDot').style.background  = pp.bg;
+      document.getElementById('colorDot').style.borderColor = pp.bd;
+
+      const diff = mlAdded - EQ;
+      if (Math.abs(diff) < 0.08 && !eqGlowed && mlAdded > 0) {
+        eqGlowed = true;
+        const w = document.getElementById('flaskWrap');
+        w.classList.add('eq-glow');
+        setTimeout(() => w.classList.remove('eq-glow'), 4600);
+      }
+      if (Math.abs(diff) > 0.5) eqGlowed = false;
+
+      let msg = '', color = 'rgba(255,255,255,0.52)';
+      if (mlAdded < 0.05) {
+        msg = mode === 'NaOH_HCl' ? 'Kéo thanh trượt để nhỏ NaOH vào bình HCl.' : 'Kéo thanh trượt để nhỏ HCl vào bình NaOH.';
+      } else if (Math.abs(diff) < 0.08) {
+        msg = '🎯 Điểm tương đương! pH = 7.00 — Trung hoà hoàn toàn.'; color = '#a78bfa';
+      } else if (diff > 8) {
+        msg = mode === 'NaOH_HCl' ? '⚠️ Dư nhiều NaOH — dung dịch rất base, màu tím đậm.' : '⚠️ Dư nhiều HCl — rất acid, phenolphthalein mất màu.';
+        color = '#f87171';
+      } else if (diff > 0.1) {
+        msg = mode === 'NaOH_HCl' ? `Dư ${diff.toFixed(2)} mL NaOH — pH = ${fmt}, hơi base.` : `Dư ${diff.toFixed(2)} mL HCl — pH = ${fmt}, hơi acid.`;
+        color = '#fbd38d';
+      } else if (diff < -0.1) {
+        msg = mode === 'NaOH_HCl' ? `Thiếu ${(-diff).toFixed(2)} mL NaOH — HCl chưa trung hoà hết, pH = ${fmt}.` : `Thiếu ${(-diff).toFixed(2)} mL HCl — NaOH còn dư, pH = ${fmt}.`;
+        color = '#fbd38d';
+      } else {
+        msg = `pH = ${fmt} — rất gần điểm tương đương!`;
+      }
+      const sb = document.getElementById('statusBox');
+      sb.textContent = msg; sb.style.color = color;
+      sb.style.borderColor = color === '#a78bfa' ? 'rgba(167,139,250,0.35)' : 'rgba(255,255,255,0.09)';
+
+      updateSlider(mlAdded);
+      doStir();
+    }
+
+    function onSlider(v) {
+      mlAdded = parseFloat(v);
+      document.getElementById('fineInput').value = mlAdded.toFixed(2);
+      if (flowing) spawnRipple();
+      updateUI();
+    }
+    function onFineInput(v) {
+      let val = parseFloat(v); if (isNaN(val)) return;
+      val = Math.max(0, Math.min(BUR_MAX, val));
+      mlAdded = val;
+      document.getElementById('volSlider').value = val;
+      updateUI();
+    }
+    function nudge(d) {
+      mlAdded = Math.max(0, Math.min(BUR_MAX, parseFloat((mlAdded + d).toFixed(2))));
+      document.getElementById('volSlider').value = mlAdded;
+      document.getElementById('fineInput').value = mlAdded.toFixed(2);
+      spawnRipple(); updateUI();
+    }
+
+    function setMode(m) {
+      mode = m; eqGlowed = false;
+      document.getElementById('modeNaOH').className = m==='NaOH_HCl' ? 'active' : 'inactive';
+      document.getElementById('modeHCl').className  = m==='HCl_NaOH' ? 'active' : 'inactive';
+      document.getElementById('buretteLabel').textContent = m==='NaOH_HCl' ? 'NaOH' : 'HCl';
+      document.getElementById('eqMode2').style.display = m==='HCl_NaOH' ? 'block' : 'none';
+      document.querySelector('.eq-pill').style.display  = m==='NaOH_HCl' ? 'block' : 'none';
+      resetAll();
+    }
+    function resetAll() {
+      mlAdded = 0; eqGlowed = false;
+      stopFlow();
+      document.getElementById('volSlider').value = 0;
+      document.getElementById('fineInput').value = '0.00';
+      document.getElementById('stirCircle').classList.remove('stirring');
+      document.getElementById('flaskWrap').classList.remove('eq-glow');
+      updateUI();
+    }
+
+    setMode('NaOH_HCl');
+  </script>
+</body>
+</html>
